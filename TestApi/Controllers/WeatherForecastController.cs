@@ -10,6 +10,8 @@ using Paragraph = Spire.Doc.Documents.Paragraph;
 using Section = Spire.Doc.Section;
 using System.Linq;
 using SautinSoft.Document.Drawing;
+using Table = Spire.Doc.Table;
+using System.Text.RegularExpressions;
 
 namespace TestApi.Controllers
 {
@@ -182,53 +184,65 @@ namespace TestApi.Controllers
             document.LoadFromFile(filePath);
             for (int i = 1; i < list.Count; i++)
             {
-                document.Replace("TechDesc 1." + i.ToString(), list[i], true, true);
+                document.Replace("TechDesc1." + i.ToString(), list[i], true, true);
             }
+            //foreach (Section section in document.Sections)
+            //{
+            //    for (int i = section.Paragraphs.Count - 1; i >= 0; i--)
+            //    {
+            //        Paragraph paragraph = section.Paragraphs[i];
+            //        if (paragraph.Text.Contains("TechDesc"))
+            //        {
+            //            section.Paragraphs.Remove(paragraph);
+            //        }
+            //    }
+            //}
+
+
+
             foreach (Section section in document.Sections)
             {
-                for (int i = section.Paragraphs.Count - 1; i >= 0; i--)
+                foreach (Table table in section.Tables)
                 {
-                    Paragraph paragraph = section.Paragraphs[i];
-                    if (paragraph.Text.Contains("TechDesc"))
+                    foreach (TableRow row in table.Rows)
                     {
-                        section.Paragraphs.Remove(paragraph);
-                    }
-                }
-            }
-
-           
-            foreach (Section section in document.Sections)
-            {
-                foreach (Paragraph paragraph in section.Paragraphs)
-                {
-                    // Access the text within the paragraph
-                    string paragraphText = paragraph.Text;
-
-                    if (paragraphText.Contains("Img1"))
-                    {
-                        // Split the text by the target word
-                        string[] textParts = paragraphText.Split(new[] { "Img1" }, StringSplitOptions.None);
-
-                        // Clear the existing content in the paragraph
-                        paragraph.Items.Clear();
-
-                        // Iterate through the text parts and insert text and images
-                        for (int i = 0; i < textParts.Length; i++)
+                        foreach (TableCell cell in row.Cells)
                         {
-                            if (i > 0)
+                            for (int i = cell.Paragraphs.Count - 1; i >= 0; i--)
                             {
-                                // Insert the image
-                                DocPicture docPicture = paragraph.AppendPicture(@"images/image 238.jpg");
-                                docPicture.Width = 100; // Set the image width as needed
-                                docPicture.Height = 100; // Set the image height as needed
+                                Paragraph paragraph = cell.Paragraphs[i];
+                                if (paragraph.Text.Contains("TechDesc2"))
+                                {
+                                    section.Paragraphs.Remove(paragraph);
+                                }
                             }
 
-                            // Insert the text part
-                            paragraph.AppendText(textParts[i]);
+                            if (cell.Paragraphs.Count > 0)
+                            {
+                                Paragraph paragraph = cell.Paragraphs[0];
+                                string paragraphText = paragraph.Text;
+
+                                if (paragraphText.Contains("Img1"))
+                                {
+                                    // Create a new paragraph with the image
+                                    Paragraph newParagraph = new Paragraph(paragraph.Document);
+                                    DocPicture picture = new DocPicture(paragraph.Document);
+                                    picture.LoadImage(@"images/image 238.jpg");
+                                    picture.Width = 100;  // Set the desired width
+                                    picture.Height = 100; // Set the desired height
+                                    newParagraph.ChildObjects.Add(picture);
+
+                                    // Replace the entire cell content with the new paragraph
+                                    TableCell cell2 = (TableCell)paragraph.Owner;
+                                    cell2.Paragraphs.Clear();
+                                    cell2.Paragraphs.Add(newParagraph);
+                                }
+                            }
                         }
                     }
                 }
             }
+
 
             document.SaveToFile("Replace.docx", FileFormat.Docx);
             return Ok();
