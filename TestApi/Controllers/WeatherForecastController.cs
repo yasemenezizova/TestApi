@@ -243,9 +243,13 @@ namespace TestApi.Controllers
                 }
             }
 
-
             document.SaveToFile("Replace.docx", FileFormat.Docx);
             return Ok();
+        }
+
+        public IActionResult ConcatPage()
+        {
+
         }
     }
 }
